@@ -1,0 +1,35 @@
+import pandas as pd
+import networkx as nx
+import matplotlib.pyplot as plt
+
+# Load the edge list from the CSV file
+edge_list = pd.read_csv('EdgeList.csv')
+
+# Create a graph object
+G = nx.Graph()
+
+# Add edges and weights to the graph
+for index, row in edge_list.iterrows():
+    G.add_edge(row['Source'], row['Target'], weight=row['Weight'])
+
+# Draw the graph
+plt.figure(figsize=(10, 10))
+pos = nx.spring_layout(G)  # positions for all nodes
+edges = G.edges(data=True)
+
+# Draw nodes
+nx.draw_networkx_nodes(G, pos, node_size=200)
+
+# Draw edges
+nx.draw_networkx_edges(G, pos, edgelist=edges, width=1)
+
+# Draw edge labels
+edge_labels = {(u, v): d['weight'] for u, v, d in edges}
+nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=5)
+
+# Draw node labels
+nx.draw_networkx_labels(G, pos, font_size=10, font_family='sans-serif')
+
+# Show the plot
+plt.title('Single Layer Weighted Network of CIS5524 Students')
+plt.show()
