@@ -5,11 +5,13 @@ import pymnet
 import networkx as nx
 
 """
-This script reads the data from the CSV file and creates adjacency 
-matrices for each layer of the multilayer network.
+This script reads the data from assignment 1 CSV file and creates adjacency 
+matrices for each layer of the multilayer network. Then we use pymnet to
+create a multilayer network and visualize it. We also compute global network
+properties for each layer.
 """
 
-data = pd.read_csv('Assignment_1_Data.csv')
+data = pd.read_csv('Assignment1/Assignment_1_Data.csv')
 data.columns = data.columns.str.strip() # remove leading/trailing whitespaces
 data = data.rename(columns={
     'Do you have some background on Data Mining (CIS 4523/5523) or Machine Learning?': 'Data Mining/ML',
@@ -26,7 +28,7 @@ layer2 = np.zeros((num_students, num_students), dtype=int)
 layer3 = np.zeros((num_students, num_students), dtype=int)
 
 # create a mapping from student names to indices
-student_index = {student: idx for idx, student in enumerate(students)}
+student_index = {student: idx for idx, student in enumerate(students)} # {student_name: index}
 
 # Fill the adjacency matrices
 for _, row in data.iterrows():
@@ -43,9 +45,9 @@ for _, row in data.iterrows():
         if row['Graphs/Statistics'] == data[data['Student Name'] == other_student]['Graphs/Statistics'].values[0]:
             layer3[idx, other_idx] = 1
 
-np.savetxt('ML.csv', layer1, delimiter=',', fmt='%d')
-np.savetxt('PythonR.csv', layer2, delimiter=',', fmt='%d')
-np.savetxt('GraphStat.csv', layer3, delimiter=',', fmt='%d')
+np.savetxt('Assignment1/ML.csv', layer1, delimiter=',', fmt='%d')
+np.savetxt('Assignment1/PythonR.csv', layer2, delimiter=',', fmt='%d')
+np.savetxt('Assignment1/GraphStat.csv', layer3, delimiter=',', fmt='%d')
 
 print("Adjacency matrices saved to ML.csv, PythonR.csv, and GraphStat.csv")
 
