@@ -1,6 +1,8 @@
+from matplotlib import pyplot as plt
 import pandas as pd
 import numpy as np
 import pymnet
+import networkx as nx
 
 """
 This script reads the data from the CSV file and creates adjacency 
@@ -60,6 +62,42 @@ for i, student in enumerate(students):
         if layer3[i, j] == 1:
             ml_net[student, other_student, 'Graphs/Statistics'] = 1
 
+# compute global network properties
+def compute_network_properties(G, layer_name):
+    # size and diameter of the largest connected component
+    largest_cc = max(nx.connected_components(G), key=len)
+    subgraph = G.subgraph(largest_cc)
+    size = len(largest_cc)
+    diameter = nx.diameter(subgraph) if nx.is_connected(subgraph) else float('inf')
+    
+    # degree distribution
+    degrees = [d for n, d in G.degree()]
+    avg_degree = np.mean(degrees)
+    
+    # average path length
+    avg_path_length = nx.average_shortest_path_length(subgraph) if nx.is_connected(subgraph) else float('inf')
+    
+    # average clustering coefficient
+    avg_clustering_coeff = nx.average_clustering(G)
+    
+    print(f"Layer: {layer_name}")
+    print(f"Size of largest connected component: {size}")
+    print(f"Diameter of largest connected component: {diameter}")
+    print(f"Average degree: {avg_degree}")
+    print(f"Average path length: {avg_path_length}")
+    print(f"Average clustering coefficient: {avg_clustering_coeff}\n")
+
+# create networkx graphs for each layer for computation
+G1 = nx.from_numpy_array(layer1)
+G2 = nx.from_numpy_array(layer2)
+G3 = nx.from_numpy_array(layer3)
+
+# call compute_network_properties for each layer
+compute_network_properties(G1, 'Data Mining/ML')
+compute_network_properties(G2, 'Python/R')
+compute_network_properties(G3, 'Graphs/Statistics')
+
+# visualize the multilayer network
 pymnet.draw(ml_net, 
             layerLabelDict={0: 'Data Mining/ML', 1: 'Python/R', 2: 'Graphs/Statistics'},
             layout='spring', 
