@@ -1,9 +1,15 @@
 import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
+import numpy as np
+
+"""
+This script reads data from our generated edge list and creates a weighted network graph.
+We also compute global network properties for this graph.
+"""
 
 # load the edge list from the CSV file
-edge_list = pd.read_csv('EdgeList.csv')
+edge_list = pd.read_csv('Assignment1/EdgeList.csv', skiprows=1)
 
 # graph object
 G = nx.Graph()
@@ -25,6 +31,34 @@ nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=5)
 
 # draw node labels
 nx.draw_networkx_labels(G, pos, font_size=10, font_family='sans-serif')
+
+# compute global network properties
+def compute_network_properties(G):
+    # size and diameter of the largest connected component
+    largest_cc = max(nx.connected_components(G), key=len)
+    subgraph = G.subgraph(largest_cc)
+    size = len(largest_cc)
+    diameter = nx.diameter(subgraph) if nx.is_connected(subgraph) else float('inf')
+    
+    # degree distribution
+    degrees = [d for n, d in G.degree()]
+    avg_degree = np.mean(degrees)
+    
+    # average path length
+    avg_path_length = nx.average_shortest_path_length(subgraph) if nx.is_connected(subgraph) else float('inf')
+    
+    # average clustering coefficient
+    avg_clustering_coeff = nx.average_clustering(G)
+    
+    print(f"--------Single Layer Network Properties--------")
+    print(f"Size of largest connected component: {size}")
+    print(f"Diameter of largest connected component: {diameter}")
+    print(f"Average degree: {avg_degree}")
+    print(f"Average path length: {avg_path_length}")
+    print(f"Average clustering coefficient: {avg_clustering_coeff}\n")
+
+# call compute_network_properties
+compute_network_properties(G)
 
 # show the graph
 plt.title('Single Layer Weighted Network of CIS5524 Students')
