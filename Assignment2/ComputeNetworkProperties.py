@@ -9,7 +9,7 @@ G_nx = nx.Graph()
 with open('Assignment2/com-amazon.ungraph.txt', 'r') as file:
     for line in file:
         if line.startswith("#"):
-            continue  # Skip comments
+            continue # skip comments
         node1, node2 = map(int, line.split())
         G_nx.add_edge(node1, node2)
 
@@ -59,7 +59,9 @@ plt.savefig("degree_histogram.png")
 plt.show()
 
 # average path length and diameter
-sample_nodes = np.random.choice(list(node_map.values()), size=min(1000, G_nk.numberOfNodes()), replace=False)
+sample_nodes = np.random.choice(list(node_map.values()), 
+                                size=min(1000, G_nk.numberOfNodes()), # sample size can be changed
+                                replace=False)
 total_path_length = 0
 count = 0
 
