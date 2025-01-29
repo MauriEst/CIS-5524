@@ -1,0 +1,9 @@
+Graph: 334863 nodes, 925872 edges.
+Largest Connected Component Size: 334863
+Number of Connected Components: 1
+Average degree: 5.53
+Approximate Average Shortest Path Length (using 1000 random nodes): 11.9130
+Approximate Average Shortest Path Length (using 5000 random nodes): 11.8949
+Approximate Diameter: (47, 48)
+Actual Diameter (longest shortest path): 44
+Average Clustering Coefficient: 0.3967
