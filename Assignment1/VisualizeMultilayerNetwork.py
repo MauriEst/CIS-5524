@@ -81,6 +81,7 @@ def compute_network_properties(G, layer_name):
     
     # average clustering coefficient
     avg_clustering_coeff = nx.average_clustering(G)
+    cluster_coeff = nx.clustering(G)
     
     print(f"Layer: {layer_name}")
     print(f"Size of largest connected component: {size}")
@@ -88,6 +89,7 @@ def compute_network_properties(G, layer_name):
     print(f"Average degree: {avg_degree}")
     print(f"Average path length: {avg_path_length}")
     print(f"Average clustering coefficient: {avg_clustering_coeff}\n")
+    print(f" clustering coefficient: {cluster_coeff}\n")
 
 # create networkx graphs for each layer for computation
 G1 = nx.from_numpy_array(layer1)
