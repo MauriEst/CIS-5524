@@ -75,7 +75,7 @@ approx_avg_path_length = total_path_length / count
 print(f"Approximate Average Shortest Path Length (using 1000 random nodes): {approx_avg_path_length:.4f}")
 
 # diameter
-diameter_approx = nk.distance.Diameter(G_nk, algo=nk.distance.DiameterAlgo.EstimatedRange, error=0.1).run().getDiameter()
+diameter_approx = nk.distance.Diameter(G_nk, algo=1).run().getDiameter() # 1 for exact, 2 for estimated range
 print(f"Approximate Diameter: {diameter_approx}")
 print(f"Actual Diameter (longest shortest path): 44")
 
