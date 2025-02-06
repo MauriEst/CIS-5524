@@ -1,6 +1,11 @@
 from math import ceil
 from scipy.stats import poisson
 
+"""
+This script computes properties of an Erdos-Renyi random graph. We calculate
+the average degree, the variance, and the number of expected nodes with degree
+2 x the average degree
+"""
 def erdos_renyi_properties(N, p):
     # compute the average degree
     avgDeg = (N - 1) * p
@@ -8,7 +13,7 @@ def erdos_renyi_properties(N, p):
     # compute the variance
     variance = (N - 1) * p * (1 - p)  # Binomial variance formula
     
-    # compute expected number of nodes with degree at least 2 * avg_degree
+    # compute expected number of nodes with degree at least 2 times avgDeg
     twoTimesNodes = ceil(2 * avgDeg)  # The degree threshold
 
     # compute using Poisson approximation
