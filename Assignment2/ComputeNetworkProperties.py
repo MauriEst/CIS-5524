@@ -55,7 +55,7 @@ plt.xlabel("Degree")
 plt.ylabel("Count")
 plt.title("Degree Histogram")
 plt.grid(True)
-plt.savefig("degree_histogram.png")
+plt.savefig("Assignment2/degree_histogram.png")
 plt.show()
 
 # average path length and diameter

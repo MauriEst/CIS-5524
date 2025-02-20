@@ -29,11 +29,31 @@ def scale_free(n, m):
         source += 1
     return G
 
-G_nx = scale_free(10000, 4)
+# 1 way to plot
+def plot_degree_distribution(G, title):
+    degree_sequence = sorted([d for n, d in G.degree()], reverse=True)
+    degree_count = {degree: degree_sequence.count(degree) for degree in degree_sequence}
+    degrees, counts = zip(*degree_count.items())
+    
+    plt.figure(figsize=(8, 6))
+    plt.loglog(degrees, counts, 'b.', alpha=0.7)
+    plt.xlabel("Degree (log scale)")
+    plt.ylabel("Frequency (log scale)")
+    plt.title(title)
+    plt.show()
 
-# degree distribution
+# Generate and plot networks for 100, 1,000, and 10,000 nodes
+sizes = [100, 1000, 10000]
+m = 4
+
+for size in sizes:
+    G_nx = scale_free(size, m)
+    plot_degree_distribution(G_nx, f"Degree Distribution (Log-Log Scale) for {size} Nodes")
+
+# G_nx = scale_free(10000, 4)
+
+# 2nd way to plot
 degrees = np.array([d for n, d in G_nx.degree()])
-avg_degrees = np.mean(degrees)
 degree_counts = np.bincount(degrees)
 
 plt.figure(figsize=(8, 5))
