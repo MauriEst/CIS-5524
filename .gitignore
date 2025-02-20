@@ -171,3 +171,7 @@ cython_debug/
 .pypirc
 .DS_Store
 Assignment2/com-amazon.ungraph.txt
+.vscode/settings.json
+
+# PNGs
+*.png

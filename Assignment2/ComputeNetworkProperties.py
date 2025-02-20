@@ -45,7 +45,7 @@ plt.xlabel("Degree")
 plt.ylabel("Frequency")
 plt.title("Degree Distribution")
 plt.grid(True)
-plt.savefig("degree_distribution.png")
+plt.savefig("Assignment2/degree_distribution.png")
 plt.show()
 
 # degree histogram
