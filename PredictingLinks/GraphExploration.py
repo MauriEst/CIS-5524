@@ -3,6 +3,13 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from pathlib import Path
 import pickle
+import random
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 def load_wikilink_graph(file_path):
     """Load the WikiLinkGraphs CSV file into a NetworkX directed graph."""
@@ -137,16 +144,113 @@ def aggregate_and_visualize_statistics(G):
     plt.close()
     print("Degree distribution plot saved as 'degree_distribution.png'")
     
-    # Clustering coefficient distribution
-    clustering_coeffs = nx.clustering(G)
-    plt.figure(figsize=(10, 6))
-    plt.hist(clustering_coeffs.values(), bins=50, log=True)
-    plt.title("Clustering Coefficient Distribution")
-    plt.xlabel("Clustering Coefficient")
-    plt.ylabel("Frequency")
-    plt.savefig("clustering_coefficient_distribution.png")
-    plt.close()
-    print("Clustering coefficient distribution plot saved as 'clustering_coefficient_distribution.png'")
+def compute_structural_features(G, edge_pairs):
+    """Compute structural features for a list of edge pairs."""
+    features = []
+    for u, v in edge_pairs:
+        # Common Neighbors
+        common_neigh = len(list(nx.common_neighbors(G, u, v)))
+        
+        # Jaccard Similarity
+        neighbors_u = set(G[u])
+        neighbors_v = set(G[v])
+        union_size = len(neighbors_u | neighbors_v)
+        jaccard = common_neigh / union_size if union_size > 0 else 0
+        
+        # Preferential Attachment
+        pref_attach = G.out_degree(u) * G.out_degree(v)
+        
+        features.append([common_neigh, jaccard, pref_attach])
+    
+    return np.array(features)
+
+def compute_textual_features(G, edge_pairs):
+    """Compute textual features (cosine similarity of page titles) for edge pairs."""
+    # Collect all titles
+    titles = [G.nodes[node].get('title', '') for node in G.nodes()]
+    vectorizer = CountVectorizer(binary=True)
+    title_vectors = vectorizer.fit_transform(titles)
+    
+    # Map node IDs to their index in the title list
+    node_to_index = {node: i for i, node in enumerate(G.nodes())}
+    
+    # Compute cosine similarity for each pair
+    text_features = []
+    for u, v in edge_pairs:
+        u_idx = node_to_index.get(u, -1)
+        v_idx = node_to_index.get(v, -1)
+        if u_idx != -1 and v_idx != -1:
+            sim = cosine_similarity(title_vectors[u_idx], title_vectors[v_idx])[0][0]
+        else:
+            sim = 0
+        text_features.append([sim])
+    
+    return np.array(text_features)
+
+def prepare_link_prediction_data(G, sample_size=10000):
+    """Prepare data for link prediction by sampling positive and negative edges."""
+    # Sample positive edges (existing)
+    pos_edges = random.sample(list(G.edges()), sample_size)
+    
+    # Sample negative edges (non-existing)
+    all_nodes = list(G.nodes())
+    neg_edges = []
+    while len(neg_edges) < sample_size:
+        u = random.choice(all_nodes)
+        v = random.choice(all_nodes)
+        if u != v and not G.has_edge(u, v):
+            neg_edges.append((u, v))
+    
+    # Combine and label
+    all_edges = pos_edges + neg_edges
+    labels = [1] * sample_size + [0] * sample_size
+    
+    # Compute features
+    structural_features = compute_structural_features(G, all_edges)
+    textual_features = compute_textual_features(G, all_edges)
+    features = np.hstack([structural_features, textual_features])
+    
+    return features, labels, all_edges
+
+def train_and_evaluate_model(G):
+    """Train and evaluate a link prediction model."""
+    # Prepare data
+    print("Preparing link prediction data...")
+    features, labels, _ = prepare_link_prediction_data(G, sample_size=10000)
+    
+    # Split data
+    X_train, X_test, y_train, y_test = train_test_split(
+        features, labels, test_size=0.2, random_state=42
+    )
+    
+    # Train Random Forest model
+    print("Training Random Forest model...")
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X_train, y_train)
+    
+    # Evaluate
+    print("Evaluating model...")
+    y_pred = model.predict(X_test)
+    y_proba = model.predict_proba(X_test)[:, 1]
+    
+    precision = precision_score(y_test, y_pred)
+    recall = recall_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+    auc = roc_auc_score(y_test, y_proba)
+    
+    print("\nLink Prediction Results:")
+    print(f"Precision: {precision:.4f}")
+    print(f"Recall: {recall:.4f}")
+    print(f"F1-Score: {f1:.4f}")
+    print(f"AUC-ROC: {auc:.4f}")
+    
+    # Save results to a file
+    with open('link_prediction_results.txt', 'w') as f:
+        f.write(f"Precision: {precision:.4f}\n")
+        f.write(f"Recall: {recall:.4f}\n")
+        f.write(f"F1-Score: {f1:.4f}\n")
+        f.write(f"AUC-ROC: {auc:.4f}\n")
+    print("Results saved to 'link_prediction_results.txt'")
 
 def main():
     # Define file parameters
@@ -177,6 +281,10 @@ def main():
     # Aggregate and visualize statistics
     print("Aggregating and visualizing statistics...")
     aggregate_and_visualize_statistics(G)
+
+    # Perform link prediction
+    print("Starting link prediction...")
+    train_and_evaluate_model(G)
 
 if __name__ == "__main__":
     main()
