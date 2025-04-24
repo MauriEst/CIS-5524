@@ -144,12 +144,20 @@ def aggregate_and_visualize_statistics(G):
     plt.close()
     print("Degree distribution plot saved as 'degree_distribution.png'")
     
+def custom_common_neighbors(G, u, v):
+    """Compute common neighbors for a directed graph using out-neighbors."""
+    neighbors_u = set(G.successors(u))  # Out-neighbors of u
+    neighbors_v = set(G.successors(v))  # Out-neighbors of v
+    return len(neighbors_u & neighbors_v)
+
+
+
 def compute_structural_features(G, edge_pairs):
     """Compute structural features for a list of edge pairs."""
     features = []
     for u, v in edge_pairs:
         # Common Neighbors
-        common_neigh = len(list(nx.common_neighbors(G, u, v)))
+        common_neigh = custom_common_neighbors(G, u, v)
         
         # Jaccard Similarity
         neighbors_u = set(G[u])
@@ -267,20 +275,20 @@ def main():
         save_graph(G, graph_file)
     
     # Explore the graph
-    print("Exploring graph properties...")
-    explore_graph(G)
+    # print("Exploring graph properties...")
+    # explore_graph(G)
 
     # Visualize a subgraph
-    print("Visualizing a subgraph...")
-    visualize_subgraph(G, num_nodes=500)
+    # print("Visualizing a subgraph...")
+    # visualize_subgraph(G, num_nodes=500)
     
     # Visualize the largest connected component
-    print("Visualizing the largest connected component...")
-    visualize_lcc(G, num_nodes=500)
+    # print("Visualizing the largest connected component...")
+    # visualize_lcc(G, num_nodes=500)
     
     # Aggregate and visualize statistics
-    print("Aggregating and visualizing statistics...")
-    aggregate_and_visualize_statistics(G)
+    # print("Aggregating and visualizing statistics...")
+    # aggregate_and_visualize_statistics(G)
 
     # Perform link prediction
     print("Starting link prediction...")
