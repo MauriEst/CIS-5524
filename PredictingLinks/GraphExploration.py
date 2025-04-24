@@ -176,7 +176,15 @@ def compute_textual_features(G, edge_pairs):
     """Compute textual features (cosine similarity of page titles) for edge pairs."""
     # Collect all titles
     titles = [G.nodes[node].get('title', '') for node in G.nodes()]
-    vectorizer = CountVectorizer(binary=True)
+    
+    # Check if titles are valid
+    if not any(titles):
+        print("No valid titles found in the graph. Skipping textual features.")
+        return np.zeros((len(edge_pairs), 1))  # Return zero features if no titles exist
+    
+    print(f"Sample titles: {titles[:10]}")  # Debug: Print the first 10 titles
+    
+    vectorizer = CountVectorizer(binary=True, stop_words=None)
     title_vectors = vectorizer.fit_transform(titles)
     
     # Map node IDs to their index in the title list
