@@ -85,9 +85,9 @@ def visualize_subgraph(G, num_nodes=500, output_file="graph_visualization.png"):
     
     
     plt.figure(figsize=(12, 8))  # Set the figure size
-    pos = nx.spring_layout(G, seed=42)  # Use the spring layout for better visualization
-    nx.draw_networkx_nodes(G, pos, node_size=10, node_color='blue', alpha=0.7)
-    nx.draw_networkx_edges(G, pos, edge_color='gray', alpha=0.5)
+    pos = nx.spring_layout(subgraph, seed=42)  # Use the spring layout for better visualization
+    nx.draw_networkx_nodes(subgraph, pos, node_size=10, node_color='blue', alpha=0.7)
+    nx.draw_networkx_edges(subgraph, pos, edge_color='gray', alpha=0.5)
     plt.title("Graph Visualization")
     plt.axis("off")  # Turn off the axis
     plt.savefig(output_file, dpi=300)  # Save the visualization as an image
