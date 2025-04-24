@@ -94,7 +94,7 @@ def visualize_subgraph(G, num_nodes=500, output_file="graph_visualization.png"):
     plt.close()
     print(f"Graph visualization saved as '{output_file}'")
 
-def visualize_lcc(G, output_file="lcc_visualization.png"):
+def visualize_lcc(G, num_nodes=500, output_file="lcc_visualization.png"):
     """Visualize the largest connected component of the graph."""
     if G is None:
         print("No graph to visualize.")
@@ -103,17 +103,21 @@ def visualize_lcc(G, output_file="lcc_visualization.png"):
     # Extract the largest weakly connected component
     largest_wcc = max(nx.weakly_connected_components(G), key=len)
     lcc = G.subgraph(largest_wcc)
-    print(f"Visualizing the largest connected component with {len(lcc.nodes)} nodes and {len(lcc.edges)} edges.")
+    print(f"The largest connected component has {len(lcc.nodes)} nodes and {len(lcc.edges)} edges.")
+    
+    # Extract a smaller subgraph from the LCC
+    subgraph = lcc.subgraph(list(lcc.nodes)[:num_nodes])
+    print(f"Visualizing a subgraph of the LCC with {len(subgraph.nodes)} nodes and {len(subgraph.edges)} edges.")
     
     plt.figure(figsize=(12, 8))
-    pos = nx.spring_layout(lcc, seed=42)
-    nx.draw_networkx_nodes(lcc, pos, node_size=10, node_color='blue', alpha=0.7)
-    nx.draw_networkx_edges(lcc, pos, edge_color='gray', alpha=0.5)
-    plt.title("Largest Connected Component (LCC) Visualization")
+    pos = nx.spring_layout(subgraph, seed=42)
+    nx.draw_networkx_nodes(subgraph, pos, node_size=10, node_color='blue', alpha=0.7)
+    nx.draw_networkx_edges(subgraph, pos, edge_color='gray', alpha=0.5)
+    plt.title("Largest Connected Component (LCC) Subgraph Visualization")
     plt.axis("off")
     plt.savefig(output_file, dpi=300)
     plt.close()
-    print(f"LCC visualization saved as '{output_file}'")
+    print(f"LCC subgraph visualization saved as '{output_file}'")
 
 def aggregate_and_visualize_statistics(G):
     """Aggregate and visualize graph statistics."""
@@ -168,7 +172,7 @@ def main():
     
     # Visualize the largest connected component
     print("Visualizing the largest connected component...")
-    visualize_lcc(G)
+    visualize_lcc(G, num_nodes=500)
     
     # Aggregate and visualize statistics
     print("Aggregating and visualizing statistics...")
