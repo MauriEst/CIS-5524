@@ -173,5 +173,10 @@ cython_debug/
 Assignment2/com-amazon.ungraph.txt
 .vscode/settings.json
 
-# PNGs
+# pictures
 *.png
+*.svg
+
+# graphs and vectors
+*.pkl
+*.gpickle

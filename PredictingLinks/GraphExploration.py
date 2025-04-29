@@ -101,6 +101,8 @@ def visualize_subgraph(G, num_nodes=500, output_file="graph_visualization.png"):
     plt.close()
     print(f"Graph visualization saved as '{output_file}'")
 
+
+
 def visualize_lcc(G, num_nodes=500, output_file="lcc_visualization.png"):
     """Visualize the largest connected component of the graph."""
     if G is None:
@@ -143,131 +145,37 @@ def aggregate_and_visualize_statistics(G):
     plt.savefig("degree_distribution.png")
     plt.close()
     print("Degree distribution plot saved as 'degree_distribution.png'")
-    
-def custom_common_neighbors(G, u, v):
-    """Compute common neighbors for a directed graph using out-neighbors."""
-    neighbors_u = set(G.successors(u))  # Out-neighbors of u
-    neighbors_v = set(G.successors(v))  # Out-neighbors of v
-    return len(neighbors_u & neighbors_v)
 
-
-
-def compute_structural_features(G, edge_pairs):
-    """Compute structural features for a list of edge pairs."""
-    features = []
-    for u, v in edge_pairs:
-        # Common Neighbors
-        common_neigh = custom_common_neighbors(G, u, v)
-        
-        # Jaccard Similarity
-        neighbors_u = set(G[u])
-        neighbors_v = set(G[v])
-        union_size = len(neighbors_u | neighbors_v)
-        jaccard = common_neigh / union_size if union_size > 0 else 0
-        
-        # Preferential Attachment
-        pref_attach = G.out_degree(u) * G.out_degree(v)
-        
-        features.append([common_neigh, jaccard, pref_attach])
+def visualize_article_and_neighbors(G, article_id, num_neighbors=20, output_file="article_neighbors.png"):
+    """Visualize an article and its nearest neighbors."""
+    if G is None:
+        print("No graph to visualize.")
+        return
     
-    return np.array(features)
-
-def compute_textual_features(G, edge_pairs):
-    """Compute textual features (cosine similarity of page titles) for edge pairs."""
-    # Collect all titles
-    titles = [G.nodes[node].get('title', '') for node in G.nodes()]
+    if article_id not in G:
+        print(f"Article ID {article_id} not found in the graph.")
+        return
     
-    # Check if titles are valid
-    if not any(titles):
-        print("No valid titles found in the graph. Skipping textual features.")
-        return np.zeros((len(edge_pairs), 1))  # Return zero features if no titles exist
+    # Get the neighbors of the article
+    neighbors = list(G.neighbors(article_id))[:num_neighbors]
+    nodes_to_include = [article_id] + neighbors
     
-    print(f"Sample titles: {titles[:10]}")  # Debug: Print the first 10 titles
+    # Create the subgraph
+    subgraph = G.subgraph(nodes_to_include)
+    print(f"Visualizing article {article_id} and its {len(neighbors)} nearest neighbors.")
     
-    vectorizer = CountVectorizer(binary=True, stop_words=None)
-    title_vectors = vectorizer.fit_transform(titles)
+    # Visualize the subgraph
+    plt.figure(figsize=(8, 6))
+    pos = nx.spring_layout(subgraph, seed=42)
+    nx.draw_networkx_nodes(subgraph, pos, node_size=300, node_color='blue', alpha=0.8)
+    nx.draw_networkx_edges(subgraph, pos, edge_color='gray', alpha=0.5)
+    nx.draw_networkx_labels(subgraph, pos, font_size=10, font_color='black')
+    plt.title(f"Article {article_id} and its Nearest Neighbors")
+    plt.axis("off")
+    plt.savefig(output_file, dpi=300)
+    plt.close()
+    print(f"Visualization saved as '{output_file}'")
     
-    # Map node IDs to their index in the title list
-    node_to_index = {node: i for i, node in enumerate(G.nodes())}
-    
-    # Compute cosine similarity for each pair
-    text_features = []
-    for u, v in edge_pairs:
-        u_idx = node_to_index.get(u, -1)
-        v_idx = node_to_index.get(v, -1)
-        if u_idx != -1 and v_idx != -1:
-            sim = cosine_similarity(title_vectors[u_idx], title_vectors[v_idx])[0][0]
-        else:
-            sim = 0
-        text_features.append([sim])
-    
-    return np.array(text_features)
-
-def prepare_link_prediction_data(G, sample_size=10000):
-    """Prepare data for link prediction by sampling positive and negative edges."""
-    # Sample positive edges (existing)
-    pos_edges = random.sample(list(G.edges()), sample_size)
-    
-    # Sample negative edges (non-existing)
-    all_nodes = list(G.nodes())
-    neg_edges = []
-    while len(neg_edges) < sample_size:
-        u = random.choice(all_nodes)
-        v = random.choice(all_nodes)
-        if u != v and not G.has_edge(u, v):
-            neg_edges.append((u, v))
-    
-    # Combine and label
-    all_edges = pos_edges + neg_edges
-    labels = [1] * sample_size + [0] * sample_size
-    
-    # Compute features
-    structural_features = compute_structural_features(G, all_edges)
-    textual_features = compute_textual_features(G, all_edges)
-    features = np.hstack([structural_features, textual_features])
-    
-    return features, labels, all_edges
-
-def train_and_evaluate_model(G):
-    """Train and evaluate a link prediction model."""
-    # Prepare data
-    print("Preparing link prediction data...")
-    features, labels, _ = prepare_link_prediction_data(G, sample_size=10000)
-    
-    # Split data
-    X_train, X_test, y_train, y_test = train_test_split(
-        features, labels, test_size=0.2, random_state=42
-    )
-    
-    # Train Random Forest model
-    print("Training Random Forest model...")
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
-    
-    # Evaluate
-    print("Evaluating model...")
-    y_pred = model.predict(X_test)
-    y_proba = model.predict_proba(X_test)[:, 1]
-    
-    precision = precision_score(y_test, y_pred)
-    recall = recall_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
-    auc = roc_auc_score(y_test, y_proba)
-    
-    print("\nLink Prediction Results:")
-    print(f"Precision: {precision:.4f}")
-    print(f"Recall: {recall:.4f}")
-    print(f"F1-Score: {f1:.4f}")
-    print(f"AUC-ROC: {auc:.4f}")
-    
-    # Save results to a file
-    with open('link_prediction_results.txt', 'w') as f:
-        f.write(f"Precision: {precision:.4f}\n")
-        f.write(f"Recall: {recall:.4f}\n")
-        f.write(f"F1-Score: {f1:.4f}\n")
-        f.write(f"AUC-ROC: {auc:.4f}\n")
-    print("Results saved to 'link_prediction_results.txt'")
-
 def main():
     # Define file parameters
     csv_file = "enwiki.wikilink_graph.2005-03-01.csv"
@@ -281,6 +189,10 @@ def main():
         print(f"Loading graph from {csv_file}...")
         G = load_wikilink_graph(csv_file)
         save_graph(G, graph_file)
+
+    # Visualize an article and its neighbors
+    article_id = 12  # Replace with the ID of the article you want to visualize
+    visualize_article_and_neighbors(G, article_id, num_neighbors=5)
     
     # Explore the graph
     # print("Exploring graph properties...")
@@ -297,10 +209,6 @@ def main():
     # Aggregate and visualize statistics
     # print("Aggregating and visualizing statistics...")
     # aggregate_and_visualize_statistics(G)
-
-    # Perform link prediction
-    print("Starting link prediction...")
-    train_and_evaluate_model(G)
 
 if __name__ == "__main__":
     main()
